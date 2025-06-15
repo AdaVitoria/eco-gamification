@@ -22,11 +22,12 @@ model User {
 
 model Mission {
   id          Int                 @id @default(autoincrement())
-  name        String
+  name        String              @unique
   description String
   score       Int
   completedBy CompletedMission[] // Relação com as missões completadas
 }
+
 
 model CompletedMission {
   id             Int       @id @default(autoincrement())
