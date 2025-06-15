@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int                 @id @default(autoincrement())
+  login     String              @unique
+  name      String
+  cpf       String              @unique
+  email     String              @unique
+  password  String
+  points    Int                 @default(0)
+  missions  CompletedMission[] // Relação com as missões completadas
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+}
+
+model Mission {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  description String
+  score       Int
+  completedBy CompletedMission[] // Relação com as missões completadas
+}
+
+model CompletedMission {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  missionId      Int
+  completionDate DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  mission Mission @relation(fields: [missionId], references: [id])
+}
