@@ -33,12 +33,45 @@ export function MissionsTab() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleComplete = (missionId: number) => {
-    // Aqui você poderia fazer uma chamada POST para completar a missão
-    toast.success("Missão completada! (mock)");
-    setMissions((prev) =>
-      prev.map((m) => (m.id === missionId ? { ...m, status: "COMPLETED" } : m))
-    );
+  const handleComplete = async (missionId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
+      // Decodifica o JWT para obter o userId
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userId = payload.id;
+
+      const res = await fetch("/api/complete-mission", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId, missionId }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error(errorData.message || "Erro ao completar missão");
+        return;
+      }
+
+      toast.success("Missão completada!");
+
+      // Atualiza a missão no estado local
+      setMissions((prev) =>
+        prev.map((m) =>
+          m.id === missionId ? { ...m, status: "COMPLETED" } : m
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro interno ao completar missão");
+    }
   };
 
   if (loading) return <p>Carregando missões...</p>;
