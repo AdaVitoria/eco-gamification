@@ -1,6 +1,7 @@
 import type React from "react";
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "EcoGamification",
@@ -15,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className="bg-white text-gray-900 font-sans antialiased">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

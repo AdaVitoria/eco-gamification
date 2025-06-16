@@ -27,7 +27,9 @@ export function MissionCard({ mission, onComplete }: MissionCardProps) {
   return (
     <Card
       className={`transition-all hover:shadow-lg ${
-        mission.status === "COMPLETED" ? "bg-green-50 border-green-200" : ""
+        mission.status === "COMPLETED"
+          ? "bg-green-50 border-green-200"
+          : "bg-white"
       }`}
     >
       <CardHeader>
@@ -49,7 +51,7 @@ export function MissionCard({ mission, onComplete }: MissionCardProps) {
 
         {mission.status === "ACTIVE" && (
           <div className="flex space-x-2">
-            <Button size="sm" onClick={onComplete}>
+            <Button size="sm" className="bg-green-500" onClick={onComplete}>
               Completar
             </Button>
           </div>

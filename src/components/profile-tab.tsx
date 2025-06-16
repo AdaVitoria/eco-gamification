@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
+
+// Função segura para decodificar o token JWT
+function parseJwt(token: string) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch (err) {
+    console.error("Token inválido", err);
+    return null;
+  }
+}
 
 export function ProfileTab() {
   const [userId, setUserId] = useState<number | null>(null);
@@ -15,20 +26,18 @@ export function ProfileTab() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { updateUserFromToken } = useAuth();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) return;
 
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUserId(payload.id);
-      setLogin(payload.login || "");
-      setEmail(payload.email || "");
-    } catch (err) {
-      console.error("Erro ao decodificar token", err);
-    }
+    const payload = parseJwt(token);
+    if (!payload) return;
+
+    setUserId(payload.id);
+    setLogin(payload.login || "");
+    setEmail(payload.email || "");
   }, []);
 
   const handleSubmit = async () => {
@@ -61,7 +70,19 @@ export function ProfileTab() {
         setError(data.error || "Erro ao atualizar perfil.");
       } else {
         setMessage("Perfil atualizado com sucesso!");
-        // Atualiza o token se login/email mudarem? (opcional)
+
+        // Atualiza o token e o estado com os novos dados
+        if (data.token) {
+          updateUserFromToken(data.token);
+          localStorage.setItem("token", data.token);
+
+          const payload = parseJwt(data.token);
+          if (payload) {
+            setUserId(payload.id);
+            setLogin(payload.login || "");
+            setEmail(payload.email || "");
+          }
+        }
       }
     } catch (err) {
       setError("Erro ao conectar com o servidor.");
@@ -119,7 +140,9 @@ export function ProfileTab() {
       <Button
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="w-full bg-green-600 hover:bg-green-700"
+        className={`w-full bg-green-600 hover:bg-green-700 ${
+          isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+        }`}
       >
         {isSubmitting ? "Salvando..." : "Salvar Alterações"}
       </Button>

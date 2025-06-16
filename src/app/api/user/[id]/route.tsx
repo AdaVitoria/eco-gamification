@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcryptjs from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-// PATCH /api/users/:id
+const JWT_SECRET = process.env.JWT_SECRET!;
+if (!JWT_SECRET) throw new Error("JWT_SECRET não definida");
+
+function generateJWT(user: { id: number; login: string; email: string }) {
+  return jwt.sign(
+    {
+      id: user.id,
+      login: user.login,
+      email: user.email,
+    },
+    JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -15,7 +30,6 @@ export async function PATCH(
   const body = await req.json();
   const { login, name, email, password } = body;
 
-  // Não permitir campos proibidos como cpf ou points
   if (body.cpf || body.points !== undefined) {
     return NextResponse.json(
       {
@@ -33,7 +47,6 @@ export async function PATCH(
     if (name !== undefined) data.name = name;
     if (email !== undefined) data.email = email;
     if (password !== undefined) {
-      // Se senha for enviada, criptografa
       data.password = await bcryptjs.hash(password, 10);
     }
 
@@ -42,10 +55,9 @@ export async function PATCH(
       data,
     });
 
-    // Por segurança, não retorna a senha
-    const { password: _, ...userWithoutPassword } = updatedUser;
+    const token = generateJWT(updatedUser); // ⚡ Gera novo token com dados atualizados
 
-    return NextResponse.json(userWithoutPassword, { status: 200 });
+    return NextResponse.json({ token }, { status: 200 }); // ✅ Retorna o novo token
   } catch (error: any) {
     if (error.code === "P2025") {
       return NextResponse.json(
