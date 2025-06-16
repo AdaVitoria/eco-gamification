@@ -101,7 +101,7 @@ export function Dashboard() {
       </div>
 
       {/* Botão de relatório */}
-      <a href="/api/dashboard/relatorio" target="_blank">
+      <a href={`/api/dashboard/relatorio?userId=${userId}`} target="_blank">
         <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700">
           Gerar Relatório
         </Button>
