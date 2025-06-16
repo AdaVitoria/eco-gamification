@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { format, startOfWeek, endOfWeek, subWeeks } from "date-fns";
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  addWeeks,
+  isBefore,
+  differenceInCalendarWeeks,
+} from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 
 export async function GET(req: Request) {
@@ -11,6 +18,23 @@ export async function GET(req: Request) {
     if (isNaN(userId)) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { createdAt: true },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Usuário não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    const inicio = startOfWeek(user.createdAt, { weekStartsOn: 0 });
+    const hoje = new Date();
+    const totalSemanas =
+      differenceInCalendarWeeks(hoje, inicio, { weekStartsOn: 0 }) + 1;
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([600, 800]);
@@ -26,16 +50,18 @@ export async function GET(req: Request) {
 
     let y = 760;
     drawText("Relatório Semanal de Desempenho", y);
+    y -= 20;
+    drawText(
+      `Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`,
+      y
+    );
     y -= 30;
+    let semanaAtual = inicio;
 
-    const numSemanas = 4; // últimas 4 semanas
-    const agora = new Date();
+    for (let i = 0; i < totalSemanas; i++) {
+      const semanaInicio = addWeeks(inicio, i);
+      const semanaFim = endOfWeek(semanaInicio, { weekStartsOn: 0 });
 
-    for (let i = numSemanas - 1; i >= 0; i--) {
-      const semanaInicio = startOfWeek(subWeeks(agora, i), { weekStartsOn: 0 });
-      const semanaFim = endOfWeek(subWeeks(agora, i), { weekStartsOn: 0 });
-
-      // Missões do usuário na semana
       const missoesUser = await prisma.completedMission.findMany({
         where: {
           userId,
@@ -46,7 +72,6 @@ export async function GET(req: Request) {
         },
       });
 
-      // Todas as missões da semana (para calcular o ranking)
       const todas = await prisma.completedMission.findMany({
         where: {
           completionDate: {
@@ -60,7 +85,7 @@ export async function GET(req: Request) {
         },
       });
 
-      // Calcular pontos por usuário
+      // Ranking por usuário
       const rankingMap = new Map<number, number>();
       for (const cm of todas) {
         const id = cm.userId;
@@ -74,7 +99,7 @@ export async function GET(req: Request) {
 
       const posicao = rankingOrdenado.indexOf(userId) + 1;
 
-      // Texto da semana
+      // Escrever no PDF
       drawText(
         `Semana de ${format(semanaInicio, "dd/MM/yyyy", { locale: ptBR })}:`,
         y
@@ -89,6 +114,13 @@ export async function GET(req: Request) {
         y
       );
       y -= 30;
+
+      // Se chegar no fim da página, adiciona uma nova
+      if (y < 50) {
+        const newPage = pdfDoc.addPage([600, 800]);
+        y = 760;
+        page.drawText = newPage.drawText;
+      }
     }
 
     const pdfBytes = await pdfDoc.save();
