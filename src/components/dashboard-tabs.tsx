@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Target, Users, TrendingUp } from "lucide-react";
-
+import { Dashboard } from "./dashboard";
 import { MissionsTab } from "./missions-tab";
 import { RankingTab } from "./ranking-tab";
 import { ProfileTab } from "./profile-tab";
@@ -54,6 +54,10 @@ export function DashboardTabs() {
           <span> Perfil</span>
         </TabsTrigger>
       </TabsList>
+
+      <TabsContent value="dashboard">
+        <Dashboard />
+      </TabsContent>
 
       <TabsContent value="missions">
         <MissionsTab />
