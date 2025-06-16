@@ -45,9 +45,6 @@ export function Header({ user }: HeaderProps) {
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-              <p className="text-xs text-gray-600">
-                Ranking: #{user.rank} • {user.totalPoints} pontos
-              </p>
             </div>
 
             {/* Avatar + menu */}
@@ -80,11 +77,6 @@ export function Header({ user }: HeaderProps) {
                     </p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
