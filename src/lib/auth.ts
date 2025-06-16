@@ -31,3 +31,22 @@ export function verifyToken(token: string): AuthPayload {
     email: decoded.email,
   };
 }
+
+export async function getUserFromToken(req: Request) {
+  const token = req.headers.get("authorization")?.replace("Bearer ", "");
+
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(
+      Buffer.from(token.split(".")[1], "base64").toString()
+    );
+    return {
+      id: payload.id,
+      login: payload.login,
+      email: payload.email,
+    };
+  } catch (err) {
+    return null;
+  }
+}
