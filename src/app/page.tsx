@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/header"; // ajuste o caminho conforme a pasta real
+import { Header } from "@/components/header";
+import { DashboardTabs } from "@/components/dashboard-tabs";
 
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
@@ -55,8 +56,9 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Header user={user} />
-
-      {/* resto do conteúdo... */}
+      <main className="px-4 py-6">
+        <DashboardTabs />
+      </main>
     </div>
   );
 }
