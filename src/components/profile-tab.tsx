@@ -43,7 +43,7 @@ export function ProfileTab() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`/api/users/${userId}`, {
+      const res = await fetch(`/api/user/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
