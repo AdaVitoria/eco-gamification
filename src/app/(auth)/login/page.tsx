@@ -40,7 +40,7 @@ export default function AuthPage() {
     const data = await res.json();
     if (res.ok) {
       localStorage.setItem("token", data.token);
-      router.push("/home");
+      router.push("/");
     } else alert(data.error);
   }
 
